@@ -1,0 +1,14 @@
+{
+  "thresholds": {"notify": 50, "high": 75, "store_min": 25},
+  "weights": {
+    "geo_strong": 20, "geo_weak": 8, "route": 15,
+    "date_exact": 15, "date_day_only": 10, "date_relative": 8,
+    "question_mark_vote": 6, "stale_date": -20, "too_long": -20
+  },
+  "too_long_chars": 800,
+  "min_chars": 6,
+  "group_caps": {"travel": 15, "intent_offer": 30, "intent_request": 30, "object": 10, "contact": 5, "negative": -60},
+  "intent_total_cap": 30,
+  "role_min": 15,
+  "role_priority": ["carrier_offer", "sender_request", "receiver_request"]
+}

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  userbot:
+    build: .
+    command: python -m app.userbot.main
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      TG_SESSION_PATH: /secrets/userbot
+    volumes:
+      - ./secrets:/secrets              # сессия юзербота (вне образа и git)
+      - ./config:/app/config:ro         # список чатов
+      - ./rules:/app/rules:ro           # словари (правятся без пересборки)
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
+    build: .
+    command: python -m app.bot.main
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ./config:/app/config:ro
+      - ./rules:/app/rules:ro
+      - ./locales:/app/locales:ro       # переводы (новый язык = новый .ftl)
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
