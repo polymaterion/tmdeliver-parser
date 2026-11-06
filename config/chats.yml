@@ -9,7 +9,25 @@ defaults:
   default_language: ru        # ru | tk (любой файл из locales/)
 
 sources:
-  - username: example_chat_one
-    title: Пример: чат 1
-  - username: example_chat_two
-    title: Пример: чат 2
+  - username: russia_turkmens
+    title: Туркмены в России
+  - username: talypby
+    title: Minsk Turkmen Talyplar
+  - username: cargoRFTM
+    title: Карго логистика Turkmenistan
+  - username: polsadayasayanturkmenler
+    title: Polşada ýaşaýan türkmenler
+  - username: talyplar_biznes
+    title: Talyplar Biznes
+  - username: tkm_hemayat_2024
+    title: Turkmenlere hemaýat
+  - username: amerikadakyturkmenler
+    title: Amerikadaky Türkmenler
+  - username: rossiya_turkmenler
+    title: Rossiýadaky Turkmenler
+  - username: kazan_turkmen
+    title: Kazan
+  - username: Lebaplylar
+    title: Лебапские
+  - username: turkmenlere_komek
+    title: Türkmenlere kömek
