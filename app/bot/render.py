@@ -11,7 +11,7 @@ from app.common.i18n import I18n
 
 CATEGORIES = ["carrier_offer", "sender_request", "receiver_request", "traveler_announce", "unclear"]
 CONTACT = ["none", "contacted", "replied", "agreed", "done", "no_answer", "declined"]
-VERDICTS = {"u": "useful", "i": "irrelevant", "d": "duplicate"}
+VERDICTS = {"u": "useful", "i": "irrelevant"}
 
 
 def esc(v) -> str:
@@ -68,10 +68,8 @@ def render_match(i18n: I18n, lang: str, m: dict) -> str:
 
 
 def match_keyboard(i18n: I18n, lang: str, m: dict, verdict: str | None = None) -> Kb:
+    """Ряд 1: [Полезно] [Не релевантно]; ряд 2: [Профиль] [Сообщение]; ряд 3: статус контакта."""
     t = lambda k, **kw: i18n.t(lang, k, **kw)  # noqa: E731
-    rows = []
-    if m.get("link"):
-        rows.append([Btn(text=t("btn-open"), url=m["link"])])
 
     def fb(code: str, key: str) -> Btn:
         label = t(key)
@@ -79,7 +77,14 @@ def match_keyboard(i18n: I18n, lang: str, m: dict, verdict: str | None = None) -
             label = t("mark-selected", label=label)
         return Btn(text=label, callback_data=f"fb:{m['id']}:{code}")
 
-    rows.append([fb("u", "btn-useful"), fb("i", "btn-irrelevant"), fb("d", "btn-duplicate")])
+    rows = [[fb("u", "btn-useful"), fb("i", "btn-irrelevant")]]
+    links = []
+    if m.get("profile_url"):
+        links.append(Btn(text=t("btn-profile"), url=m["profile_url"]))
+    if m.get("link"):
+        links.append(Btn(text=t("btn-message"), url=m["link"]))
+    if links:
+        rows.append(links)
     rows.append([Btn(text=t("btn-contact", status=t("contact-" + m["contact_status"])), callback_data=f"cs:{m['id']}")])
     return Kb(inline_keyboard=rows)
 
