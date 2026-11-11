@@ -5,10 +5,12 @@ import asyncio
 import logging
 import os
 import re
+import time
 from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 
 from telethon import TelegramClient, events, utils
+from telethon.tl.types import User
 from telethon.errors import (AuthKeyError, ChannelPrivateError, FloodWaitError,
                              UsernameInvalidError, UsernameNotOccupiedError)
 
@@ -34,6 +36,9 @@ class Userbot:
         self.watermark: dict[int, int] = {}          # chat_id -> последний обработанный message_id
         self._dirty: set[int] = set()
         self.seen: OrderedDict[tuple[int, int], None] = OrderedDict()
+        self._dialogs: dict[int, object] = {}        # кэш peer_id -> entity (только для поиска по числовому id)
+        self._dialogs_at = -1e9
+        self._numeric_refs: list[str] = []
 
     # ---------------- источники ----------------
     async def seed_sources(self) -> None:
@@ -46,19 +51,52 @@ class Userbot:
                 "ON CONFLICT (ref) DO UPDATE SET title=COALESCE(EXCLUDED.title, sources.title)",
                 ref, item.get("title"), bool(item.get("enabled", True)))
 
+    async def _entity_by_id(self, num: int):
+        """Чат по числовому id (в т.ч. приватный), если аккаунт в нём состоит.
+        Список диалогов читается только чтобы найти ЗАПРОШЕННЫЙ id; остальные диалоги отбрасываются."""
+        wanted = {num} | ({int("-100" + str(num))} if num > 0 else set())
+        for attempt in (0, 1):
+            for pid in wanted:
+                if pid in self._dialogs:
+                    return self._dialogs[pid]
+            if attempt == 0 and time.monotonic() - self._dialogs_at > 600:
+                self._dialogs_at = time.monotonic()
+                found: dict[int, object] = {}
+                async for d in self.client.iter_dialogs():
+                    pid = utils.get_peer_id(d.entity)
+                    if pid in self._all_wanted_ids():
+                        found[pid] = d.entity
+                self._dialogs.update(found)
+            else:
+                break
+        raise ValueError("чат не найден среди диалогов аккаунта (вступите в него)")
+
+    def _all_wanted_ids(self) -> set[int]:
+        out: set[int] = set()
+        for ref in self._numeric_refs:
+            n = int(ref)
+            out |= {n} | ({int("-100" + str(n))} if n > 0 else set())
+        return out
+
     async def sync_sources(self) -> None:
         rows = await self.pool.fetch("SELECT * FROM sources WHERE enabled ORDER BY id LIMIT $1", int(self.cfg["defaults"]["max_sources"]))
         active: dict[int, dict] = {}
+        self._numeric_refs = [r["ref"] for r in rows if r["ref"].lstrip("-").isdigit()]
         for r in rows:
             known = next((c for c, v in self.sources.items() if v["id"] == r["id"]), None)
             if known:
                 active[known] = self.sources[known]
                 continue
             try:
-                ref = int(r["ref"]) if r["ref"].lstrip("-").isdigit() else (_USERNAME.match(r["ref"]) or [None, None])[1]
-                if ref is None:
-                    raise ValueError("недопустимая ссылка (нужен публичный @username или числовой id)")
-                ent = await self.client.get_entity(ref)
+                if r["ref"].lstrip("-").isdigit():
+                    ent = await self._entity_by_id(int(r["ref"]))
+                else:
+                    mt = _USERNAME.match(r["ref"])
+                    if not mt:
+                        raise ValueError("недопустимая ссылка (нужен @username или числовой id чата)")
+                    ent = await self.client.get_entity(mt.group(1))
+                if isinstance(ent, User):
+                    raise ValueError("личные переписки не поддерживаются")
                 cid = utils.get_peer_id(ent)
                 title = getattr(ent, "title", None) or r["title"]
                 uname = getattr(ent, "username", None)
@@ -70,7 +108,7 @@ class Userbot:
                 log.warning("FloodWait при разборе источника: %ss", e.seconds)
                 await asyncio.sleep(e.seconds + 1)
             except (UsernameNotOccupiedError, UsernameInvalidError, ChannelPrivateError, ValueError) as e:
-                await self.pool.execute("UPDATE sources SET resolve_error=$2, updated_at=now() WHERE id=$1", r["id"], type(e).__name__)
+                await self.pool.execute("UPDATE sources SET resolve_error=$2, updated_at=now() WHERE id=$1", r["id"], str(e)[:80] if isinstance(e, ValueError) else type(e).__name__)
                 log.warning("источник id=%s недоступен: %s", r["id"], type(e).__name__)
             except Exception as e:  # noqa: BLE001
                 log.exception("ошибка разбора источника id=%s: %s", r["id"], type(e).__name__)
