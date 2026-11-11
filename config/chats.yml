@@ -1,5 +1,7 @@
-# Список публичных чатов (20–25). Только @username публичных групп/каналов.
+# Список чатов (20–25): публичные — по `username`, приватные — по числовому `id`.
 # Аккаунт юзербота должен уже состоять в этих чатах (автоматически он никуда не вступает).
+# Числовой id приватного группового чата имеет вид -100XXXXXXXXXX (узнать: @userinfobot / @getidsbot,
+# либо из ссылки t.me/c/XXXXXXXXXX/N → id = -100XXXXXXXXXX). Инвайт-ссылки (t.me/+…) не поддерживаются.
 # Чаты можно также добавлять/отключать командами бота (/sources, /add_source).
 defaults:
   notify_threshold: 50        # порог уведомления (0–100), потом меняется в боте
@@ -9,25 +11,10 @@ defaults:
   default_language: ru        # ru | tk (любой файл из locales/)
 
 sources:
-  - username: russia_turkmens
-    title: Туркмены в России
-  - username: talypby
-    title: Minsk Turkmen Talyplar
-  - username: cargoRFTM
-    title: Карго логистика Turkmenistan
-  - username: polsadayasayanturkmenler
-    title: Polşada ýaşaýan türkmenler
-  - username: talyplar_biznes
-    title: Talyplar Biznes
-  - username: tkm_hemayat_2024
-    title: Turkmenlere hemaýat
-  - username: amerikadakyturkmenler
-    title: Amerikadaky Türkmenler
-  - username: rossiya_turkmenler
-    title: Rossiýadaky Turkmenler
-  - username: kazan_turkmen
-    title: Kazan
-  - username: Lebaplylar
-    title: Лебапские
-  - username: turkmenlere_komek
-    title: Türkmenlere kömek
+  - username: example_chat_one
+    title: Пример: чат 1
+  - username: example_chat_two
+    title: Пример: чат 2
+  # Приватный чат (аккаунт уже в нём состоит):
+  # - id: -1001234567890
+  #   title: Приватная группа
