@@ -7,7 +7,7 @@ from app.common.links import profile_link
 
 
 def _m(**kw):
-    base = dict(id=7, link="https://t.me/chat/5", profile_url="https://t.me/user1", contact_status="none")
+    base = dict(id=7, link="https://t.me/chat/5", profile_url="https://t.me/user1")
     base.update(kw)
     return base
 
@@ -23,7 +23,8 @@ def test_layout_ru():
     assert rows[1] == ["👤 Профиль", "💬 Сообщение"]
     urls = [b.url for b in kb.inline_keyboard[1]]
     assert urls == ["https://t.me/user1", "https://t.me/chat/5"]
-    assert not any("Дубликат" in t for row in rows for t in row)
+    assert len(rows) == 2
+    assert not any(w in t for row in rows for t in row for w in ("Дубликат", "Контакт"))
 
 
 def test_no_duplicate_verdict():
@@ -39,9 +40,9 @@ def test_missing_links_hide_buttons(profile, link, expected):
     assert rows[1] == expected
 
 
-def test_no_links_at_all_only_feedback_and_contact():
+def test_no_links_at_all_only_feedback():
     rows = _layout(match_keyboard(I18n("locales"), "ru", _m(profile_url=None, link=None)))
-    assert len(rows) == 2 and rows[0][0].endswith("Полезно")
+    assert len(rows) == 1 and rows[0][0].endswith("Полезно")
 
 
 def test_selected_verdict_marked():
