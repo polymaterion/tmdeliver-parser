@@ -22,7 +22,6 @@ btn-profile = 👤 Профиль
 btn-message = 💬 Сообщение
 btn-useful = 👍 Полезно
 btn-irrelevant = 👎 Не релевантно
-btn-contact = 📞 Контакт: { $status }
 btn-back = ⬅️ Назад
 btn-thr-minus = ➖ 5
 btn-thr-plus = ➕ 5
@@ -40,13 +39,6 @@ dir-from_tm = из Туркменистана
 dir-within_tm = внутри Туркменистана
 dir-unknown = направление неясно
 
-contact-none = не начат
-contact-contacted = написал
-contact-replied = ответили
-contact-agreed = договорились
-contact-done = передано
-contact-no_answer = нет ответа
-contact-declined = отказ
 
 notify-header = 🔔 <b>Новое объявление</b> · { $score }/100
 notify-category = { $category }
@@ -95,7 +87,6 @@ stats-text =
     Уведомлений отправлено: { $notified }
     Дубликатов: { $dups }
     Оценки: 👍 { $useful } · 👎 { $irrelevant }
-    Контакты: написал { $contacted }, ответили { $replied }, договорились { $agreed }, передано { $done }
 
 export-caption = Выгрузка находок и оценок (без телефонов отправителей и их идентификаторов в явном виде).
 export-empty = Пока нет данных для выгрузки.
@@ -108,8 +99,6 @@ test-result =
     📅 { $date }
 
 fb-saved = Спасибо, оценка сохранена
-contact-saved = Статус обновлён
-contact-menu = Статус контакта:
 lang-choose = 🌐 Выберите язык:
 lang-set = Язык переключён
 no-match = Запись не найдена

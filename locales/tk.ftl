@@ -22,7 +22,6 @@ btn-profile = 👤 Profil
 btn-message = 💬 Habar
 btn-useful = 👍 Peýdaly
 btn-irrelevant = 👎 Ýerliksiz
-btn-contact = 📞 Habarlaşma: { $status }
 btn-back = ⬅️ Yza
 btn-thr-minus = ➖ 5
 btn-thr-plus = ➕ 5
@@ -40,13 +39,6 @@ dir-from_tm = Türkmenistandan
 dir-within_tm = Türkmenistanyň içinde
 dir-unknown = ugry düşnüksiz
 
-contact-none = başlanmady
-contact-contacted = ýazdym
-contact-replied = jogap berdi
-contact-agreed = ylalaşdyk
-contact-done = tabşyryldy
-contact-no_answer = jogap ýok
-contact-declined = ret etdi
 
 notify-header = 🔔 <b>Täze bildiriş</b> · { $score }/100
 notify-category = { $category }
@@ -95,7 +87,6 @@ stats-text =
     Iberilen habarnama: { $notified }
     Gaýtalanma: { $dups }
     Baha: 👍 { $useful } · 👎 { $irrelevant }
-    Habarlaşma: ýazdym { $contacted }, jogap berdi { $replied }, ylalaşdyk { $agreed }, tabşyryldy { $done }
 
 export-caption = Tapyndylar we bahalar (iberijileriň telefonlarysyz we kesgitleýjilerisiz).
 export-empty = Häzirlikçe maglumat ýok.
@@ -108,8 +99,6 @@ test-result =
     📅 { $date }
 
 fb-saved = Sagbolun, baha ýazga alyndy
-contact-saved = Ýagdaý täzelendi
-contact-menu = Habarlaşma ýagdaýy:
 lang-choose = 🌐 Dili saýlaň:
 lang-set = Dil çalşyldy
 no-match = Ýazgy tapylmady
