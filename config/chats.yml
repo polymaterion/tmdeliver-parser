@@ -1,20 +1,37 @@
-# Список чатов (20–25): публичные — по `username`, приватные — по числовому `id`.
+# Список чатов (20–25). Публичные — по `username`, приватные — по числовому `id`.
 # Аккаунт юзербота должен уже состоять в этих чатах (автоматически он никуда не вступает).
-# Числовой id приватного группового чата имеет вид -100XXXXXXXXXX (узнать: @userinfobot / @getidsbot,
-# либо из ссылки t.me/c/XXXXXXXXXX/N → id = -100XXXXXXXXXX). Инвайт-ссылки (t.me/+…) не поддерживаются.
-# Чаты можно также добавлять/отключать командами бота (/sources, /add_source).
+# ВАЖНО: если в title есть двоеточие, заключайте значение в кавычки: title: "Чат: пример".
 defaults:
   notify_threshold: 50        # порог уведомления (0–100), потом меняется в боте
   max_sources: 25
   backfill_hours: 0           # при первом запуске догружать N часов истории (0 = только новое)
-  notify_window_minutes: 720  # не уведомлять о находках старше N минут (защита от «залпа» после простоя)
+  notify_window_minutes: 720  # не уведомлять о находках старше N минут
   default_language: ru        # ru | tk (любой файл из locales/)
 
 sources:
-  - username: example_chat_one
-    title: Пример: чат 1
-  - username: example_chat_two
-    title: Пример: чат 2
-  # Приватный чат (аккаунт уже в нём состоит):
+  - username: russia_turkmens
+    title: "Туркмены в России"
+  - username: talypby
+    title: "Minsk Turkmen Talyplar"
+  - username: cargoRFTM
+    title: "Карго логистика Turkmenistan"
+  - username: polsadayasayanturkmenler
+    title: "Polşada ýaşaýan türkmenler"
+  - username: talyplar_biznes
+    title: "Talyplar Biznes"
+  - username: tkm_hemayat_2024
+    title: "Turkmenlere hemaýat"
+  - username: amerikadakyturkmenler
+    title: "Amerikadaky Türkmenler"
+  - username: rossiya_turkmenler
+    title: "Rossiýadaky Turkmenler"
+  - username: kazan_turkmen
+    title: "Kazan"
+  - username: Lebaplylar
+    title: "Лебапские"
+  - username: turkmenlere_komek
+    title: "Türkmenlere kömek"
+
+  # Чат по числовому id (нужна версия userbot с поддержкой id; аккаунт уже состоит в чате):
   # - id: -1001234567890
-  #   title: Приватная группа
+  #   title: "Приватная группа"
