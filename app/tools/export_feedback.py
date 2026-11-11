@@ -12,7 +12,7 @@ async def main(path: str) -> None:
     pool = await create_pool(s.database_url)
     rows = await pool.fetch(
         """SELECT m.id, m.created_at, m.chat_title, m.link, m.score, m.category, m.direction, array_to_string(m.route,'>') route,
-                  m.travel_date, array_to_string(m.rules,',') rules, m.status, m.contact_status,
+                  m.travel_date, array_to_string(m.rules,',') rules, m.status,
                   (SELECT string_agg(f.verdict, ',') FROM feedback f WHERE f.match_id=m.id) verdict, m.text
            FROM matches m ORDER BY m.id""")
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
