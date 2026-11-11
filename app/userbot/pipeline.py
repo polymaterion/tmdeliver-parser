@@ -38,12 +38,18 @@ async def find_duplicate(conn, a, fp: str | None) -> int | None:
 
 async def process(pool, engine: FilterEngine, *, salt: str, store_min: int, source_id: int | None,
                   chat_id: int, chat_title: str | None, message_id: int, link: str | None,
-                  sender_id: int | None, text: str, sent_at: datetime) -> str:
+                  sender_id: int | None, text: str, sent_at: datetime, get_profile=None) -> str:
     """Возвращает: 'skip' | 'stored' | 'duplicate' | 'exists'."""
     a = engine.analyze(text, now=sent_at)
     if a.excluded or a.score < store_min:
         return "skip"
     sender_hash = hash_sender(salt, sender_id)
+    profile_url = None
+    if get_profile is not None:           # профиль запрашиваем только для сохраняемых сообщений
+        try:
+            profile_url = await get_profile()
+        except Exception as e:  # noqa: BLE001
+            log.warning("не удалось получить профиль автора: %s", type(e).__name__)
     fp = fingerprint(a, salt, sender_hash)
     async with pool.acquire() as conn:
         async with conn.transaction():
@@ -51,14 +57,14 @@ async def process(pool, engine: FilterEngine, *, salt: str, store_min: int, sour
             row = await conn.fetchrow(
                 """INSERT INTO matches (source_id, chat_id, message_id, chat_title, link, sent_at, sender_hash, text,
                        score, level, category, direction, route, route_names, travel_date, date_text, reasons, rules,
-                       text_hash, simhash, fingerprint, status, duplicate_of)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+                       text_hash, simhash, fingerprint, status, duplicate_of, profile_url)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
                    ON CONFLICT (chat_id, message_id) DO NOTHING RETURNING id""",
                 source_id, chat_id, message_id, chat_title, link, sent_at, sender_hash, text,
                 a.score, a.level, a.category, a.direction, a.route, a.route_names,
                 datetime.fromisoformat(a.date_iso).date() if a.date_iso else None, a.date_text,
                 [r.to_dict() for r in a.reasons], a.rules, a.text_hash, a.simhash, fp,
-                "duplicate" if dup else "new", dup,
+                "duplicate" if dup else "new", dup, profile_url,
             )
     if row is None:
         return "exists"
