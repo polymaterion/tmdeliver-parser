@@ -18,10 +18,10 @@ start-text =
     
     Команды: /settings, /sources, /add_source, /stats, /export, /test, /lang
 
-btn-open = 🔗 Открыть сообщение
+btn-profile = 👤 Профиль
+btn-message = 💬 Сообщение
 btn-useful = 👍 Полезно
 btn-irrelevant = 👎 Не релевантно
-btn-duplicate = ♻️ Дубликат
 btn-contact = 📞 Контакт: { $status }
 btn-back = ⬅️ Назад
 btn-thr-minus = ➖ 5
@@ -94,7 +94,7 @@ stats-text =
     Найдено: { $total }
     Уведомлений отправлено: { $notified }
     Дубликатов: { $dups }
-    Оценки: 👍 { $useful } · 👎 { $irrelevant } · ♻️ { $duplicate }
+    Оценки: 👍 { $useful } · 👎 { $irrelevant }
     Контакты: написал { $contacted }, ответили { $replied }, договорились { $agreed }, передано { $done }
 
 export-caption = Выгрузка находок и оценок (без телефонов отправителей и их идентификаторов в явном виде).

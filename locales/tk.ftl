@@ -18,10 +18,10 @@ start-text =
     
     Buýruklar: /settings, /sources, /add_source, /stats, /export, /test, /lang
 
-btn-open = 🔗 Habary aç
+btn-profile = 👤 Profil
+btn-message = 💬 Habar
 btn-useful = 👍 Peýdaly
 btn-irrelevant = 👎 Ýerliksiz
-btn-duplicate = ♻️ Gaýtalanma
 btn-contact = 📞 Habarlaşma: { $status }
 btn-back = ⬅️ Yza
 btn-thr-minus = ➖ 5
@@ -94,7 +94,7 @@ stats-text =
     Tapyldy: { $total }
     Iberilen habarnama: { $notified }
     Gaýtalanma: { $dups }
-    Baha: 👍 { $useful } · 👎 { $irrelevant } · ♻️ { $duplicate }
+    Baha: 👍 { $useful } · 👎 { $irrelevant }
     Habarlaşma: ýazdym { $contacted }, jogap berdi { $replied }, ylalaşdyk { $agreed }, tabşyryldy { $done }
 
 export-caption = Tapyndylar we bahalar (iberijileriň telefonlarysyz we kesgitleýjilerisiz).
