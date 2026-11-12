@@ -35,7 +35,7 @@ class I18n:
         c = (code or "").split("-")[0].lower()
         return c if c in self.bundles else self.default
 
-    def t(self, lang: str, key: str, **kw) -> str:
+    def t(self, lang: str, key: str, /, **kw) -> str:
         for code in (lang, self.default):
             b = self.bundles.get(code)
             if b and b.has_message(key):
