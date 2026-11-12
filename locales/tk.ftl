@@ -102,3 +102,15 @@ fb-saved = Sagbolun, baha ýazga alyndy
 lang-choose = 🌐 Dili saýlaň:
 lang-set = Dil çalşyldy
 no-match = Ýazgy tapylmady
+
+cmd-diag-desc = Barlag: userbot işleýärmi we näme üçin habarnama gelmeýär
+diag-title = 🩺 <b>Barlag</b>
+diag-userbot-ok = ✅ Userbot aragatnaşykda ({ $sec } sek öň signal)
+diag-userbot-down = ❌ Userbot { $min } minut signal bermeýär — docker compose logs userbot serediň
+diag-userbot-none = ❌ Userbotdan entek signal ýok — ol işlemeýär ýa-da hasaba girmedik
+diag-sources = 📡 Birikdirilen çatlar: { $connected } / { $total }
+diag-last-msg = 💬 Çatlardan soňky habar: { $min } minut öň
+diag-last-msg-none = 💬 Işe başlanaly bäri userbot hiç hili habar almady (hasap çatlarda agzamy?)
+diag-counters = 🔎 Başlanaly bäri: işlenen habar { $seen }, laýyk tapylan { $stored }
+diag-matches = 📥 24 sagatda tapyndy: { $m24 } · ugradylmagyna garaşýar: { $pending } · iberilmedi: { $failed }
+diag-settings = ⚙️ Çäk: { $thr } · habarnamalar: { $notif } · açyk kategoriýa: { $cats } / { $allcats }
