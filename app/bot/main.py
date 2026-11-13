@@ -13,11 +13,11 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError, TelegramRetryAfter
 from aiogram.filters import Command, CommandObject
-from aiogram.types import BotCommand, BufferedInputFile, CallbackQuery, Message
+from aiogram.types import BotCommand, BufferedInputFile, CallbackQuery, ErrorEvent, Message
 from aiogram.types import InlineKeyboardButton as Btn
 from aiogram.types import InlineKeyboardMarkup as Kb
 
-from app.bot.render import (CATEGORIES, VERDICTS, esc, fmt_date, match_keyboard,
+from app.bot.render import (CATEGORIES, VERDICTS, esc, mark_verdict, fmt_date, match_keyboard,
                             render_match, route_text)
 from app.common.config import load_chats_config, load_settings
 from app.common.db import create_pool, get_setting, migrate, set_setting
@@ -48,6 +48,23 @@ async def lang_of(uid: int, code: str | None = None) -> str:
     lang = S["i18n"].pick(code) if code else S["cfg"]["defaults"]["default_language"]
     await S["pool"].execute("INSERT INTO bot_users(user_id, lang) VALUES($1,$2) ON CONFLICT DO NOTHING", uid, lang)
     return lang
+
+
+async def safe_edit_text(c: CallbackQuery, text: str, kb=None) -> None:
+    """Правка сообщения без падений: «message is not modified» и прочие отказы Telegram не должны оставлять кнопку «висеть»."""
+    try:
+        await c.message.edit_text(text, reply_markup=kb)
+    except TelegramBadRequest as e:
+        if "not modified" not in str(e).lower():
+            log.warning("edit_text отклонён: %s", str(e.message)[:100])
+
+
+async def safe_edit_markup(c: CallbackQuery, kb) -> None:
+    try:
+        await c.message.edit_reply_markup(reply_markup=kb)
+    except TelegramBadRequest as e:
+        if "not modified" not in str(e).lower():
+            log.warning("edit_reply_markup отклонён: %s", str(e.message)[:100])
 
 
 def T(lang: str, key: str, /, **kw) -> str:
@@ -98,14 +115,11 @@ async def cb_settings(c: CallbackQuery):
         cats.remove(parts[2]) if parts[2] in cats else cats.append(parts[2])
         await set_setting(pool, "categories", cats)
     elif parts[1] == "lang":
-        await c.message.edit_text(T(await lang_of(c.from_user.id), "lang-choose"), reply_markup=lang_keyboard())
-        return await c.answer()
-    text, kb = await settings_view(c.from_user.id)
-    try:
-        await c.message.edit_text(text, reply_markup=kb)
-    except TelegramBadRequest:
-        pass
+        await c.answer()
+        return await safe_edit_text(c, T(await lang_of(c.from_user.id), "lang-choose"), lang_keyboard())
     await c.answer()
+    text, kb = await settings_view(c.from_user.id)
+    await safe_edit_text(c, text, kb)
 
 
 def lang_keyboard() -> Kb:
@@ -122,9 +136,9 @@ async def cb_lang(c: CallbackQuery):
     code = c.data.split(":")[1]
     if code in S["i18n"].languages:
         await S["pool"].execute("INSERT INTO bot_users(user_id, lang) VALUES($1,$2) ON CONFLICT (user_id) DO UPDATE SET lang=$2", c.from_user.id, code)
-    text, kb = await settings_view(c.from_user.id)
-    await c.message.edit_text(text, reply_markup=kb)
     await c.answer(T(code, "lang-set"))
+    text, kb = await settings_view(c.from_user.id)
+    await safe_edit_text(c, text, kb)
 
 
 # ---------------------------------------------------------------- источники
@@ -194,14 +208,15 @@ async def cb_feedback(c: CallbackQuery):
     lang = await lang_of(c.from_user.id)
     if code not in VERDICTS:              # старые уведомления с удалённой кнопкой «Дубликат»
         return await c.answer()
-    m = await _match(int(mid))
-    if not m:
+    if not await S["pool"].fetchval("SELECT 1 FROM matches WHERE id=$1", int(mid)):
         return await c.answer(T(lang, "no-match"))
     await S["pool"].execute(
         "INSERT INTO feedback(match_id,user_id,verdict) VALUES($1,$2,$3) ON CONFLICT (match_id,user_id) DO UPDATE SET verdict=$3, created_at=now()",
-        m["id"], c.from_user.id, VERDICTS[code])
-    await c.message.edit_reply_markup(reply_markup=match_keyboard(S["i18n"], lang, m, VERDICTS[code]))
-    await c.answer(T(lang, "fb-saved"))
+        int(mid), c.from_user.id, VERDICTS[code])
+    await c.answer(T(lang, "fb-saved"))   # сначала отвечаем — это снимает «часики» на кнопке
+    kb = mark_verdict(c.message.reply_markup, S["i18n"], lang, VERDICTS[code])
+    if kb is not None:
+        await safe_edit_markup(c, kb)
 
 
 # ---------------------------------------------------------------- статистика, выгрузка, тест
@@ -280,6 +295,24 @@ async def cmd_test(m: Message, command: CommandObject):
 
 
 # ---------------------------------------------------------------- рассылка уведомлений
+@router.callback_query()
+async def cb_unknown(c: CallbackQuery):
+    """Кнопки удалённых функций (например, «Контакт» в старых уведомлениях) — просто снимаем «часики»."""
+    await c.answer()
+
+
+@router.error()
+async def on_error(event: ErrorEvent) -> bool:
+    log.error("ошибка обработчика: %s: %s", type(event.exception).__name__, str(event.exception)[:200])
+    cq = event.update.callback_query
+    if cq:
+        try:
+            await cq.answer()
+        except Exception:  # noqa: BLE001
+            pass
+    return True
+
+
 _TAG = re.compile(r"<[^>]+>")
 
 
