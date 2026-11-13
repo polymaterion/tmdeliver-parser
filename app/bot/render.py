@@ -85,3 +85,27 @@ def match_keyboard(i18n: I18n, lang: str, m: dict, verdict: str | None = None) -
     if links:
         rows.append(links)
     return Kb(inline_keyboard=rows)
+
+
+def mark_verdict(markup: Kb | None, i18n: I18n, lang: str, verdict: str) -> Kb | None:
+    """Отмечает выбранную оценку на клавиатуре, которая УЖЕ стоит под сообщением.
+    Остальные кнопки (ссылки «Профиль»/«Сообщение») остаются как есть: заново их из БД не строим,
+    иначе можно вернуть кнопку, которую Telegram уже отклонил при отправке."""
+    if markup is None:
+        return None
+    labels = {"u": i18n.t(lang, "btn-useful"), "i": i18n.t(lang, "btn-irrelevant")}
+    rows = []
+    for row in markup.inline_keyboard:
+        new = []
+        for b in row:
+            cd = b.callback_data or ""
+            code = cd.split(":")[-1] if cd.startswith("fb:") else None
+            if code in VERDICTS:
+                label = labels[code]
+                if VERDICTS[code] == verdict:
+                    label = i18n.t(lang, "mark-selected", label=label)
+                new.append(Btn(text=label, callback_data=cd))
+            else:
+                new.append(b)
+        rows.append(new)
+    return Kb(inline_keyboard=rows)
